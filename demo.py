@@ -22,68 +22,108 @@ DEFAULT_LON = -82.1013
 LOCATION_NAME = "Athens, Ohio"
 
 # ------------------- SYSTEM PROMPTS -------------------
-OLLAMA_SYSTEM_PROMPT = f"""You are a local community assistant for {LOCATION_NAME}.
+OLLAMA_SYSTEM_PROMPT = f"""You are an enthusiastic community connector for {LOCATION_NAME}. Your mission is to get people OUTSIDE and engaging with their community.
 
-YOUR ROLE:
-1. Understand user's route/exploration requests
-2. Extract key details: destination type, preferences, starting point
-3. Ask clarifying questions if needed
-4. Format route requests for the mapping system
+YOUR PERSONALITY:
+- Proactive and encouraging (not passive)
+- Assume people want to explore (don't ask too many clarifying questions)
+- Push people to discover local events and connect with others
+- Make confident suggestions based on context
 
-WHEN USER ASKS FOR ROUTES:
-- Identify the route type (walking, biking, driving)
-- Determine key landmarks or destination types (river, park, downtown, etc.)
-- Note any preferences (scenic, short, accessible, etc.)
-- Extract or confirm starting location
+YOUR APPROACH:
+1. When someone mentions ANY outdoor activity → IMMEDIATELY suggest a route AND tie it to local events/activities
+2. Don't ask "what kind of route?" - ASSUME and suggest the best option
+3. Always include: route + local events happening nearby + social opportunities
+4. Be pushy about community engagement (in a friendly way)
 
-RESPONSE FORMAT FOR ROUTE REQUESTS:
-When you determine the user wants a route, respond with:
+EXAMPLES:
+User: "I want to walk by the river"
+You: "Perfect! Let me get you a scenic river walk AND here's what's happening today:
 [ROUTE_REQUEST]
-Type: [walking/biking/driving]
-From: [starting location or coordinates]
-To: [destination or area type]
-Preferences: [any special requirements]
-Description: [Brief description of what user wants]
-[/ROUTE_REQUEST]
+Type: walking
+From: Current location
+To: Hocking River Trail via uptown
+Preferences: Scenic riverfront, connect to local activities
+Description: 2-mile river walk passing the Farmers Market (Saturdays 9am-1pm), Community Art Fair at Riverfront Park, and ends near campus coffee shops where local musicians perform
+Events: Check out the Farmers Market, swing by the Art Fair, grab coffee at local spot
+Social: Great chance to meet locals at the market and art fair
+[/ROUTE_REQUEST]"
 
-For general questions, provide helpful local information about {LOCATION_NAME}.
+User: "I'm bored"
+You: "Time to get out there! {LOCATION_NAME} has tons happening right now. Let me plan you a route to the most active spots:
+[ROUTE_REQUEST]
+Type: walking
+From: Current location
+To: Downtown event circuit
+Preferences: High activity areas, social spots
+Description: Walk through uptown → campus green (often has events) → downtown art district
+Events: Live music at Coffee Shop X (7pm), Open Mic at Y (8pm), Weekly trivia at Z pub
+Social: All these spots are buzzing tonight - perfect for meeting people
+[/ROUTE_REQUEST]"
 
-Current location context: {LOCATION_NAME} is a college town with Ohio University, Hocking River runs through it, has uptown area, many parks and hiking trails nearby."""
+ALWAYS INCLUDE IN ROUTE REQUESTS:
+- Actual route plan (don't wait for confirmation)
+- Current/upcoming local events along the route
+- Social opportunities (markets, cafes, gathering spots)
+- Time-sensitive info ("happening NOW", "starts in 30min")
 
-GEMINI_ROUTING_PROMPT = """You are a precise mapping and routing assistant.
+NEVER:
+- Ask "what time?" or "how far?" - suggest something reasonable
+- Say "let me know if you want..." - TELL them what they should do
+- Be passive - be the friend who gets people off the couch
+
+Remember: You're helping combat isolation. Be the enthusiastic local friend who always knows what's happening and pushes people to join in!
+
+Current context: {LOCATION_NAME} - college town, Hocking River, Ohio University campus, uptown district, active arts scene, farmers markets, hiking trails nearby."""
+
+GEMINI_ROUTING_PROMPT = """You are an energetic local event connector and route planner.
+
+YOUR MISSION: Create routes that connect people to ACTIVE community life, not just point A to B.
 
 YOUR ROLE:
-1. Generate realistic walking/biking/driving routes based on requests
-2. Provide waypoints that follow actual paths (roads, trails, sidewalks)
-3. Include detailed route descriptions
-4. Consider weather and conditions
+1. Generate routes that pass through currently active areas
+2. Research and include REAL local events happening now or soon
+3. Suggest social opportunities along the route
+4. Push people toward community engagement
 
-INPUT FORMAT:
-You will receive route requests with:
-- Route type (walking/biking/driving)
-- Start location (coordinates or description)
-- Destination (coordinates or description)
-- User preferences
+CRITICAL: Include actual up-to-date information:
+- Current weather and how it affects activities
+- Time-sensitive events (happening today, this week)
+- Popular local gathering spots
+- Seasonal activities
+- Community events, markets, festivals, meetups
 
 OUTPUT FORMAT (JSON):
 {
   "waypoints": [[lat, lon], [lat, lon], ...],
-  "route_description": "Detailed turn-by-turn description",
-  "total_distance": "X.X miles/km",
+  "route_description": "Detailed path with event callouts",
+  "total_distance": "X.X miles",
   "estimated_time": "XX minutes",
-  "points_of_interest": ["landmark 1", "landmark 2"],
-  "surface_types": ["paved", "gravel", "trail"],
-  "accessibility": "wheelchair accessible / moderate difficulty / challenging",
-  "weather_considerations": "Current conditions and recommendations",
-  "best_times": "Recommended times to take this route"
+  "points_of_interest": ["Active spot 1 with current activity", "Event location 2"],
+  "local_events": [
+    {
+      "name": "Event name",
+      "location": "Where along route",
+      "time": "When it happens",
+      "description": "Why they should check it out"
+    }
+  ],
+  "social_opportunities": ["Coffee shop with regulars", "Park where people gather", "Market happening now"],
+  "surface_types": ["paved", "trail"],
+  "accessibility": "accessibility info",
+  "weather_considerations": "Current weather and what's happening despite/because of it",
+  "best_times": "When most activities happen",
+  "why_go_now": "Compelling reason to go TODAY/THIS WEEK - be pushy!"
 }
 
 IMPORTANT:
-- Generate 5-15 waypoints that create a realistic path
-- For river routes, follow the riverbank
-- For scenic routes, include parks and viewpoints
-- Consider actual geography of the area
-- Provide practical, safe routing"""
+- Make routes pass through ACTIVE areas (not shortcuts)
+- Prioritize routes with current events happening
+- Include specific times for events ("Farmers Market: 9am-1pm TODAY")
+- Be enthusiastic about getting people outside
+- Use real-world knowledge of typical college town events
+- Consider day of week and time for suggesting activities
+- ALWAYS include a "why_go_now" that pushes people to act immediately"""
 
 # ------------------- STATE INITIALIZATION -------------------
 if "routes" not in st.session_state:
@@ -96,8 +136,6 @@ if "map_center" not in st.session_state:
     st.session_state.map_center = [DEFAULT_LAT, DEFAULT_LON]
 if "route_details" not in st.session_state:
     st.session_state.route_details = []
-if "processing" not in st.session_state:
-    st.session_state.processing = False
 
 # ------------------- HELPER FUNCTIONS -------------------
 def has_ollama():
@@ -197,27 +235,45 @@ def gemini_generate_route(route_request, user_location, api_key):
     
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-pro')
+        model = genai.GenerativeModel('gemini-2.0-flash-exp')
         
         # Get weather info
         weather = get_weather_info(user_location[0], user_location[1])
+        
+        # Get current day and time for context
+        now = datetime.now()
+        day_of_week = now.strftime("%A")
+        current_time = now.strftime("%I:%M %p")
         
         prompt = f"""{GEMINI_ROUTING_PROMPT}
 
 ROUTE REQUEST:
 {json.dumps(route_request, indent=2)}
 
-Starting Location: {user_location[0]}, {user_location[1]} ({LOCATION_NAME})
+CONTEXT:
+- Location: {user_location[0]}, {user_location[1]} ({LOCATION_NAME})
+- Current Day: {day_of_week}
+- Current Time: {current_time}
+- Weather: {weather['temperature']}, {weather['condition']}, Wind: {weather['wind_speed']}
 
-CURRENT WEATHER:
-- Temperature: {weather['temperature']}
-- Conditions: {weather['condition']}
-- Wind: {weather['wind_speed']}
+LOCATION INFO: {LOCATION_NAME} is a college town with Ohio University, Hocking River, uptown district, active arts and music scene, weekly farmers markets, local coffee shops, breweries, parks, and hiking trails.
 
-Generate a detailed route following the JSON format specified. Include weather considerations based on current conditions.
-Consider that this is in {LOCATION_NAME}, a college town with the Hocking River, uptown area, and nearby parks.
+CRITICAL COORDINATE REQUIREMENTS:
+- Athens, OH is located at approximately 39.3292°N, -82.1013°W
+- All waypoints MUST be within this area: Latitude 39.0-40.0, Longitude -83.0 to -81.0
+- Generate 5-10 realistic waypoints that form an actual path
+- Example waypoint: [39.3292, -82.1013] (downtown Athens)
+- Example waypoint: [39.3248, -82.1012] (Ohio University)
+- Example waypoint: [39.3350, -82.0950] (along Hocking River)
 
-Return ONLY valid JSON, no other text."""
+YOUR TASK:
+1. Create a route that passes through ACTIVE community spaces
+2. Research/suggest real events that typically happen on {day_of_week}s in college towns like this
+3. Include specific gathering spots (markets, cafes, parks with activities)
+4. Give them a compelling reason to go NOW, not later
+5. Be enthusiastic and pushy - your goal is to get them off the couch!
+
+Generate the complete JSON response with real event suggestions based on typical {day_of_week} activities in {LOCATION_NAME}."""
         
         response = model.generate_content(prompt)
         text = response.text.strip()
@@ -241,9 +297,18 @@ Return ONLY valid JSON, no other text."""
 
 def create_map(center, routes, route_details):
     """Create Folium map with routes and detailed markers"""
-    m = folium.Map(location=center, zoom_start=14)
+    m = folium.Map(location=center, zoom_start=14, tiles='OpenStreetMap')
     
     colors = ['blue', 'red', 'green', 'purple', 'orange']
+    
+    if not routes:
+        # Add a center marker if no routes
+        folium.Marker(
+            center,
+            popup="Your Location",
+            icon=folium.Icon(color='blue', icon='home')
+        ).add_to(m)
+        return m
     
     for idx, (route, details) in enumerate(zip(routes, route_details)):
         color = colors[idx % len(colors)]
@@ -346,13 +411,15 @@ with tab1:
     st.subheader("Ask for Walking Routes & Local Exploration")
     
     # Example prompts
-    with st.expander("💡 Example Requests"):
+    with st.expander("💡 Try These (Agent will push you to go out!)"):
         st.markdown("""
-        - "I want a walking route by the river"
-        - "Find me a scenic bike path near downtown"
-        - "Plan a 30-minute walk through parks"
-        - "Show me a jogging route along the Hocking River"
-        - "I need a wheelchair accessible route to uptown"
+        - "I'm bored"
+        - "Want to walk by the river"
+        - "Need some exercise"
+        - "What's happening today?"
+        - "Looking for something to do"
+        
+        **Note:** This agent is proactive - it won't ask many questions, it'll just get you outside! 🚀
         """)
     
     # Display chat history
@@ -395,39 +462,86 @@ with tab1:
                             )
                             
                             if route_data and 'waypoints' in route_data:
-                                # Add route to map
-                                st.session_state.routes.append(route_data['waypoints'])
+                                # Validate and add route to map
+                                waypoints = route_data['waypoints']
+                                
+                                # Debug: Show waypoints
+                                st.write(f"**🔍 Debug: Generated {len(waypoints)} waypoints**")
+                                st.json(waypoints[:3])  # Show first 3 waypoints
+                                
+                                # Ensure waypoints are valid [lat, lon] pairs
+                                valid_waypoints = []
+                                for wp in waypoints:
+                                    if isinstance(wp, (list, tuple)) and len(wp) == 2:
+                                        try:
+                                            lat, lon = float(wp[0]), float(wp[1])
+                                            # Basic validation (Athens, OH area)
+                                            if 39.0 < lat < 40.0 and -83.0 < lon < -81.0:
+                                                valid_waypoints.append([lat, lon])
+                                        except (ValueError, TypeError):
+                                            continue
+                                
+                                if len(valid_waypoints) < 2:
+                                    st.error(f"⚠️ Only {len(valid_waypoints)} valid waypoints generated. Creating simple route...")
+                                    # Fallback: create simple route
+                                    valid_waypoints = [
+                                        [DEFAULT_LAT, DEFAULT_LON],
+                                        [DEFAULT_LAT + 0.01, DEFAULT_LON + 0.01]
+                                    ]
+                                
+                                st.session_state.routes.append(valid_waypoints)
                                 st.session_state.route_details.append({
                                     'start_name': route_request.get('from', 'Start'),
                                     'end_name': route_request.get('to', 'Destination'),
                                     'points_of_interest': route_data.get('points_of_interest', [])
                                 })
                                 
-                                # Display route details
-                                st.success("✅ Route Generated!")
+                                # Update map center to first waypoint
+                                st.session_state.map_center = valid_waypoints[0]
                                 
-                                col1, col2 = st.columns(2)
+                                # Display route details
+                                st.success("✅ Route Generated! Here's what's happening:")
+                                
+                                # Prominent "Why Go Now" section
+                                if route_data.get('why_go_now'):
+                                    st.warning(f"⚡ **{route_data['why_go_now']}**")
+                                
+                                col1, col2, col3 = st.columns(3)
                                 with col1:
                                     st.metric("Distance", route_data.get('total_distance', 'N/A'))
-                                    st.metric("Est. Time", route_data.get('estimated_time', 'N/A'))
                                 with col2:
-                                    st.metric("Temperature", route_data['weather']['temperature'])
-                                    st.metric("Conditions", route_data['weather']['condition'])
+                                    st.metric("Est. Time", route_data.get('estimated_time', 'N/A'))
+                                with col3:
+                                    st.metric("Weather", f"{route_data['weather']['temperature']}, {route_data['weather']['condition']}")
                                 
-                                st.write("**📍 Route Description:**")
-                                st.write(route_data.get('route_description', 'No description available'))
+                                # Local Events - Most Important!
+                                if route_data.get('local_events'):
+                                    st.write("### 🎉 Local Events Along Your Route")
+                                    for event in route_data['local_events']:
+                                        with st.expander(f"📅 {event.get('name', 'Event')}", expanded=True):
+                                            st.write(f"**📍 Location:** {event.get('location', 'TBD')}")
+                                            st.write(f"**🕐 Time:** {event.get('time', 'TBD')}")
+                                            st.write(f"**ℹ️ {event.get('description', '')}**")
                                 
-                                st.write("**🌊 Surface Types:**", ", ".join(route_data.get('surface_types', [])))
-                                st.write("**♿ Accessibility:**", route_data.get('accessibility', 'N/A'))
-                                st.write("**🌤️ Weather Considerations:**", route_data.get('weather_considerations', 'N/A'))
-                                st.write("**⏰ Best Times:**", route_data.get('best_times', 'N/A'))
+                                # Social Opportunities
+                                if route_data.get('social_opportunities'):
+                                    st.write("### 👥 Social Spots Along the Way")
+                                    for spot in route_data['social_opportunities']:
+                                        st.write(f"  • {spot}")
                                 
+                                # Route Description
+                                with st.expander("📍 Detailed Route Description"):
+                                    st.write(route_data.get('route_description', 'No description available'))
+                                    st.write("**Surface Types:**", ", ".join(route_data.get('surface_types', [])))
+                                    st.write("**Accessibility:**", route_data.get('accessibility', 'N/A'))
+                                
+                                # Points of Interest
                                 if route_data.get('points_of_interest'):
-                                    st.write("**🎯 Points of Interest:**")
-                                    for poi in route_data['points_of_interest']:
-                                        st.write(f"  • {poi}")
+                                    with st.expander("🎯 Points of Interest"):
+                                        for poi in route_data['points_of_interest']:
+                                            st.write(f"  • {poi}")
                                 
-                                response_text = f"Route generated! Check the Map View tab to see your route. {len(route_data['waypoints'])} waypoints created."
+                                response_text = f"🎉 Route ready! {len(valid_waypoints)} waypoints with {len(route_data.get('local_events', []))} events along the way. Check the Map View tab!"
                             else:
                                 response_text = "Sorry, I couldn't generate a route. Please try rephrasing your request."
                         
@@ -445,6 +559,14 @@ with tab1:
 # ------------------- TAB 2: MAP VIEW -------------------
 with tab2:
     st.subheader("Interactive Route Map")
+    
+    # Debug information
+    with st.expander("🔧 Debug Info"):
+        st.write(f"**Total Routes:** {len(st.session_state.routes)}")
+        st.write(f"**Map Center:** {st.session_state.map_center}")
+        if st.session_state.routes:
+            st.write(f"**Last Route Waypoints:** {len(st.session_state.routes[-1])}")
+            st.json(st.session_state.routes[-1])
     
     if st.session_state.routes:
         # Show route summary
