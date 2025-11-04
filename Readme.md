@@ -1,12 +1,18 @@
 # TG agent
 ## System Requirements
+
 Python 3.8 or higher
+
 Ollama running locally
+
 Google Gemini API key
+
 Internet connection for weather data and API calls
 
 ## LLM models
+
 For now, TG agent assumed user using local LLM-llama3:latest and Gemini API gemini-2.0-flash-exp
+
 Any unmatched models will not return vaild respone
 
 ## How to use
