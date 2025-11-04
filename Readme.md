@@ -52,6 +52,6 @@ For Gemini API, copy paste your own API keys to the left top bar
 
 ## WebUI
 ### UI
-![UI Screenshot](UI/UI.png)
+![UI Screenshot](./UI/UI.png)
 ### Map
-![map Screenshot](UI/Routes.png)
+![map Screenshot](./UI/Routes.png)
