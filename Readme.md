@@ -17,6 +17,9 @@ Any unmatched models will not return vaild respone
 
 ## How to use
 ```
+export OPENAI_API_KEY='YOUR_ACTUAL_API_KEY_HERE'
+
+
 # Install dependencies
 pip install -r requirements.txt
 
