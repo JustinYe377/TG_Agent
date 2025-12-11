@@ -1,6 +1,7 @@
 # TG Agents
 
 A hybrid AI framework for community navigation that optimizes routes for event proximity and experiential quality rather than just travel time.
+![TG Agents UI](assets/UI.png)
 
 ## Overview
 
