@@ -1,0 +1,57 @@
+{
+  "success": true,
+  "events": [
+    {
+      "name": "Holiday Ice Skating",
+      "location": "Bird Arena at Ohio University",
+      "date": "Saturday, December 13",
+      "time": "1:00 PM - 3:00 PM",
+      "description": "Public ice skating session at Bird Arena, a fun holiday activity for all ages.",
+      "category": "sports",
+      "source_url": "https://www.ohio.edu/student-affairs/university-life/bird-arena",
+      "cost": "$6"
+    },
+    {
+      "name": "Holiday Craft Workshop",
+      "location": "Athens Public Library",
+      "date": "Monday, December 15",
+      "time": "6:30 PM - 8:00 PM",
+      "description": "Create festive holiday decorations in this hands-on craft workshop. All materials provided, registration required.",
+      "category": "arts",
+      "source_url": "https://athenslibrary.org/",
+      "cost": "Free"
+    },
+    {
+      "name": "Live Music: The Honey Dewdrops",
+      "location": "Stuart's Opera House",
+      "date": "Friday, December 12",
+      "time": "8:00 PM - 10:00 PM",
+      "description": "Folk duo The Honey Dewdrops perform live at Stuart's Opera House. Tickets available online and at the door.",
+      "category": "music",
+      "source_url": "https://stuartsoperahouse.org/",
+      "cost": "$20"
+    },
+    {
+      "name": "Athens Farmers Market",
+      "location": "Athens Community Center",
+      "date": "Saturday, December 13",
+      "time": "9:00 AM - 12:00 PM",
+      "description": "Local farmers and artisans selling fresh produce, baked goods, crafts, and more.",
+      "category": "market",
+      "source_url": "https://athensfarmersmarket.org/",
+      "cost": "Free entry, items for purchase"
+    },
+    {
+      "name": "Ohio University Hockey vs. Miami University",
+      "location": "Bird Arena at Ohio University",
+      "date": "Friday, December 12",
+      "time": "7:00 PM - 9:30 PM",
+      "description": "Watch the Ohio University Bobcats hockey team take on their rivals, the Miami University RedHawks.",
+      "category": "sports",
+      "source_url": "https://www.ohio.edu/student-affairs/university-life/bird-arena",
+      "cost": "$8"
+    }
+  ],
+  "last_updated": "2025-12-10T19:55:28.068942",
+  "location": "Athens, Ohio"
+}
