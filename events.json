@@ -2,56 +2,65 @@
   "success": true,
   "events": [
     {
-      "name": "Holiday Ice Skating",
-      "location": "Bird Arena at Ohio University",
+      "name": "Holiday Ornament Workshop",
+      "location": "Arts West, 132 W State St, Athens, OH 45701",
       "date": "Saturday, December 13",
       "time": "1:00 PM - 3:00 PM",
-      "description": "Public ice skating session at Bird Arena, a fun holiday activity for all ages.",
-      "category": "sports",
-      "source_url": "https://www.ohio.edu/student-affairs/university-life/bird-arena",
-      "cost": "$6"
-    },
-    {
-      "name": "Holiday Craft Workshop",
-      "location": "Athens Public Library",
-      "date": "Monday, December 15",
-      "time": "6:30 PM - 8:00 PM",
-      "description": "Create festive holiday decorations in this hands-on craft workshop. All materials provided, registration required.",
+      "description": "Create festive ornaments for your tree or gifts. All materials provided.",
       "category": "arts",
-      "source_url": "https://athenslibrary.org/",
-      "cost": "Free"
+      "source_url": "https://www.athensohio.com/events/",
+      "cost": "Free",
+      "geocoded": false
     },
     {
-      "name": "Live Music: The Honey Dewdrops",
-      "location": "Stuart's Opera House",
-      "date": "Friday, December 12",
-      "time": "8:00 PM - 10:00 PM",
-      "description": "Folk duo The Honey Dewdrops perform live at Stuart's Opera House. Tickets available online and at the door.",
+      "name": "Open Mic Night",
+      "location": "Casa Nueva, 6 W State St, Athens, OH 45701",
+      "date": "Thursday, December 11",
+      "time": "9:00 PM - 1:00 AM",
+      "description": "Share your talents or enjoy local performers at Casa Nueva's weekly Open Mic Night.",
       "category": "music",
-      "source_url": "https://stuartsoperahouse.org/",
-      "cost": "$20"
+      "source_url": "https://www.casanueva.com/events",
+      "cost": "Free",
+      "geocoded": false
     },
     {
-      "name": "Athens Farmers Market",
-      "location": "Athens Community Center",
-      "date": "Saturday, December 13",
-      "time": "9:00 AM - 12:00 PM",
-      "description": "Local farmers and artisans selling fresh produce, baked goods, crafts, and more.",
-      "category": "market",
-      "source_url": "https://athensfarmersmarket.org/",
-      "cost": "Free entry, items for purchase"
-    },
-    {
-      "name": "Ohio University Hockey vs. Miami University",
-      "location": "Bird Arena at Ohio University",
+      "name": "OU Hockey vs. John Carroll University",
+      "location": "Bird Arena, Athens, OH 45701",
       "date": "Friday, December 12",
-      "time": "7:00 PM - 9:30 PM",
-      "description": "Watch the Ohio University Bobcats hockey team take on their rivals, the Miami University RedHawks.",
+      "time": "7:00 PM",
+      "description": "Cheer on the Ohio University Bobcats as they face John Carroll University in a hockey match.",
       "category": "sports",
-      "source_url": "https://www.ohio.edu/student-affairs/university-life/bird-arena",
-      "cost": "$8"
+      "source_url": "https://ohiobobcats.com/sports/hockey",
+      "cost": "Varies",
+      "lat": 39.323777,
+      "lon": -82.1022519,
+      "geocoded": true
+    },
+    {
+      "name": "OU Hockey vs. John Carroll University",
+      "location": "Bird Arena, Athens, OH 45701",
+      "date": "Saturday, December 13",
+      "time": "7:00 PM",
+      "description": "Cheer on the Ohio University Bobcats as they face John Carroll University in a hockey match.",
+      "category": "sports",
+      "source_url": "https://ohiobobcats.com/sports/hockey",
+      "cost": "Varies",
+      "lat": 39.323777,
+      "lon": -82.1022519,
+      "geocoded": true
+    },
+    {
+      "name": "Live Music: The Company Stores",
+      "location": "The Union, 18 W Union St, Athens, OH 45701",
+      "date": "Saturday, December 20",
+      "time": "9:00 PM",
+      "description": "The Company Stores perform live at The Union.",
+      "category": "music",
+      "source_url": "https://www.theunionbar.com/",
+      "cost": "Varies",
+      "geocoded": false
     }
   ],
-  "last_updated": "2025-12-10T19:55:28.068942",
+  "last_updated": "2025-12-10T22:10:53.727259",
   "location": "Athens, Ohio"
 }

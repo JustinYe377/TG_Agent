@@ -5,7 +5,8 @@ import streamlit as st
 from datetime import datetime
 from pathlib import Path
 from config import OLLAMA_SYSTEM_PROMPT, GEMINI_ROUTING_PROMPT, LOCATION_NAME, GEMINI_EVENT_PROMPT
-from utils import get_weather_info, track_gemini_usage
+from utils import get_weather_info, track_gemini_usage, geocode_location, get_walking_route
+import time
 
 try:
     import google.generativeai as genai
@@ -118,9 +119,12 @@ Return ONLY events you can verify from your search.
             else:
                 events_list = []
         
+        # Geocode each event location
+        events_list = geocode_events(events_list[:num_events], location)
+        
         return {
             "success": True,
-            "events": events_list[:num_events],
+            "events": events_list,
             "last_updated": today.isoformat(),
             "location": location
         }
@@ -129,6 +133,24 @@ Return ONLY events you can verify from your search.
         return {"error": f"Failed to parse events: {str(e)}"}
     except Exception as e:
         return {"error": f"Gemini Error: {str(e)}"}
+
+def geocode_events(events, city):
+    """Add lat/lon coordinates to each event"""
+    geocoded = []
+    for event in events:
+        location_str = event.get('location', '')
+        if location_str:
+            coords = geocode_location(location_str, city)
+            if coords:
+                event['lat'] = coords['lat']
+                event['lon'] = coords['lon']
+                event['geocoded'] = True
+            else:
+                event['geocoded'] = False
+            # Rate limit: Nominatim asks for 1 request/second
+            time.sleep(1)
+        geocoded.append(event)
+    return geocoded
 
 def save_events_to_file(events_data):
     """Save events to local JSON file"""
@@ -162,10 +184,10 @@ def get_events_last_updated():
             return events["last_updated"]
     return "Never"
 
-# --- Route Generation (Gemini) ---
+# --- Route Generation (Gemini + OpenRouteService) ---
 
-def generate_gemini_route(route_request, user_location, api_key):
-    """Generate route using Gemini with real event data"""
+def generate_gemini_route(route_request, user_location, api_key, ors_api_key=None):
+    """Generate route using Gemini for planning + OpenRouteService for real paths"""
     if not GEMINI_AVAILABLE:
         return None
     
@@ -176,21 +198,36 @@ def generate_gemini_route(route_request, user_location, api_key):
         weather = get_weather_info(user_location[0], user_location[1])
         now = datetime.now()
         
-        # Load real events
+        # Load real events WITH coordinates
         events = load_events_from_file()
         events_context = ""
+        geocoded_events = []
+        
         if events and events.get("events"):
-            events_context = f"VERIFIED LOCAL EVENTS:\n{json.dumps(events['events'], indent=2)}"
+            for evt in events["events"]:
+                if evt.get("geocoded") and evt.get("lat") and evt.get("lon"):
+                    geocoded_events.append(evt)
+            
+            events_context = "VERIFIED LOCAL EVENTS WITH COORDINATES:\n"
+            for evt in geocoded_events:
+                events_context += f"- {evt['name']} at {evt.get('location', 'unknown')}\n"
+                events_context += f"  Coordinates: [{evt['lat']}, {evt['lon']}]\n"
+                events_context += f"  Date/Time: {evt.get('date', 'TBD')} {evt.get('time', '')}\n\n"
         
         prompt = f"""{GEMINI_ROUTING_PROMPT}
         
 ROUTE REQUEST: {json.dumps(route_request)}
 CONTEXT: {now.strftime("%A %I:%M %p")}, Weather: {weather['condition']}
 LOCATION: {LOCATION_NAME}
+USER START LOCATION: {user_location[0]}, {user_location[1]}
 
 {events_context}
 
-Use the verified events above when planning the route. Only reference events from this list.
+IMPORTANT: 
+- Use the EXACT coordinates provided for events
+- Start from the user's location: [{user_location[0]}, {user_location[1]}]
+- Include waypoints that pass by the relevant event locations
+- Return waypoints in [lat, lon] format
 """
         
         response = model.generate_content(prompt)
@@ -200,12 +237,40 @@ Use the verified events above when planning the route. Only reference events fro
         
         text = response.text.strip()
         
-        # Simple JSON extraction
+        # Extract JSON
         start = text.find('{')
         end = text.rfind('}') + 1
         route_data = json.loads(text[start:end])
         route_data['weather'] = weather
+        
+        # If we have ORS API key, get real walking route
+        if ors_api_key and route_data.get('waypoints'):
+            real_route = get_real_walking_route(route_data['waypoints'], ors_api_key)
+            if real_route:
+                route_data['waypoints'] = real_route['coordinates']
+                route_data['real_distance'] = f"{real_route['distance_miles']} miles"
+                route_data['real_duration'] = f"{real_route['duration_minutes']} minutes"
+                route_data['route_type'] = 'road-following'
+            else:
+                route_data['route_type'] = 'straight-line (ORS failed)'
+        else:
+            route_data['route_type'] = 'straight-line (no ORS key)'
+        
         return route_data
     except Exception as e:
         st.error(f"Gemini Error: {str(e)}")
+        return None
+
+def get_real_walking_route(waypoints, ors_api_key):
+    """Convert waypoints to real walking route using OpenRouteService"""
+    if not waypoints or len(waypoints) < 2:
+        return None
+    
+    try:
+        # Convert [lat, lon] to [lon, lat] for ORS
+        ors_coords = [[wp[1], wp[0]] for wp in waypoints]
+        
+        return get_walking_route(ors_coords, ors_api_key)
+    except Exception as e:
+        print(f"Real route error: {str(e)}")
         return None
