@@ -63,8 +63,8 @@ The system consists of three main layers:
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/tg-agents.git
-cd tg-agents
+git clone https://github.com/JustinYe377/TG_Agent.git
+cd TG_Agent
 ```
 
 2. Install dependencies:
